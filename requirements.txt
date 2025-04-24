@@ -1,0 +1,12 @@
+pandas
+numpy
+apache-airflow
+dbt-snowflake
+dbt-core
+dbt-postgres
+apache-airflow-providers-snowflake
+python-dotenv
+rich 
+dotenv
+snowflake-connector-python>=3.0.0,<4.0.0
+pyarrow<19.0.0
