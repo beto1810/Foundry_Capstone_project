@@ -59,8 +59,11 @@ def load_api():
         values = data.get('values', [])
         api_df = pd.DataFrame(values[1:], columns=values[0])
 
-        print(f"Data loaded successfully: {api_df}")
         # Convert DATE_TIME to proper format
+
+        api_df['Date_Time'] = pd.to_datetime(api_df['Date_Time'], format='%d/%m/%Y %H:%M:%S')
+        api_df['Date_Time'] = api_df['Date_Time'].dt.tz_localize('UTC')
+        print(f"Data loaded successfully: {api_df}")
 
         return api_df
     else:
@@ -76,6 +79,11 @@ def check_latest_date():
     result = cur.fetchone()
     latest_date = result[0] if result else None
     "checking latest date in input data"
+    print(f"Latest date in Snowflake table: {latest_date}")
+    cur.close()
+    conn.close()
+    return latest_date
+
     
 
 @task()
@@ -104,7 +112,6 @@ def load_data_to_snowflake(new_data):
     new_data_columns = new_data.columns.tolist()
     print(f"New data columns: {new_data_columns}")
     # Insert new data into Snowflake table
-    new_data['Date_Time'] = pd.to_datetime(new_data['Date_Time'], format='%d/%m/%Y %H:%M:%S').dt.strftime('%Y-%m-%d %H:%M:%S')
     for index, row in new_data.iterrows():
         print(row['Date_Time'])
 
