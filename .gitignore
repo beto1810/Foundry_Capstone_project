@@ -1,3 +1,4 @@
 # dotenv environment variables file
 .env
 *.log
+dag_processor_manager.log
