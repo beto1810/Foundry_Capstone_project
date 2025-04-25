@@ -137,7 +137,7 @@ def load_data_to_snowflake(new_data, **context):
         # Convert boolean columns and ensure data types
         new_data['ID'] = new_data['ID'].astype(int)
         for col in ["Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11", "Q12", "Q13"]:
-            new_data[col] = new_data[col].astype(bool)
+            new_data[col] = new_data[col].map({'1': True, '0': False, 1: True, 0: False}).astype(bool)
         new_data['FULL_NAME'] = new_data['FULL_NAME'].astype(str)
         new_data['GENDER'] = new_data['GENDER'].astype(str)
 
