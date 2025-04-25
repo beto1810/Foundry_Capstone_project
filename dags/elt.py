@@ -18,6 +18,7 @@ LOCAL_DIR = "/tmp/data"  # Local directory for Parquet files
 STAGE_NAME = "my_internal_stage"  # Snowflake internal stage
 
 def get_snowflake_connection():
+    # TODO 1: Specify Airflow variables. Import them here.
     conn = BaseHook.get_connection("snowflake_default")
     return snowflake.connector.connect(
         user=conn.login,
@@ -28,12 +29,15 @@ def get_snowflake_connection():
     )
 
 def get_snowflake_hook():
+
     return SnowflakeHook(snowflake_conn_id='snowflake_default')
 
 TABLE_NAME = "TB_SYMPTOMS_GGSHEET"
 
+
 @task()
 def create_table():
+    ## Create Snowflake table if it doesn't exist
     print(f"Creating table: {TABLE_NAME}")
     conn = get_snowflake_connection()
     print(f"Connected to Snowflake: {conn}")
@@ -49,6 +53,7 @@ def create_table():
 
 @task()
 def load_api():
+    ## Load data from Google Sheets API
     print("Loading data from Google Sheets API")
     sheet_id = Variable.get("SHEET_ID")
     tab_range = Variable.get("TAB_RANGE")
@@ -74,6 +79,7 @@ def load_api():
 
 @task()
 def check_latest_date():
+    ## Check the latest date in Snowflake table
     print(f"Checking latest date in Snowflake table: {TABLE_NAME}")
     conn = get_snowflake_connection()
     cur = conn.cursor()
@@ -90,6 +96,7 @@ def check_latest_date():
 
 @task()
 def filter_new_data(api_df, latest_date):
+    ## Filter new data based on the latest date
     if api_df is None or api_df.empty:
         print("No API data to filter.")
         return None
@@ -105,6 +112,9 @@ def filter_new_data(api_df, latest_date):
     
 @task()
 def load_data_to_snowflake(new_data, **context):
+    ## Load new data into Snowflake table
+    ### Saved filtered input data to parquet file in local storage - can replace with S3 or GCS
+        
     if new_data is None or new_data.empty:
         print("No new data to load into Snowflake")
         return
