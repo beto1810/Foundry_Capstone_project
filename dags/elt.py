@@ -13,7 +13,9 @@ from airflow.sensors.base import PokeReturnValue
 from airflow.hooks.base import BaseHook
 
 
-
+#Local folder for parquette files
+LOCAL_DIR = "/tmp/data"  # Local directory for Parquet files
+STAGE_NAME = "my_internal_stage"  # Snowflake internal stage
 
 def get_snowflake_connection():
     conn = BaseHook.get_connection("snowflake_default")
@@ -37,7 +39,7 @@ def create_table():
     print(f"Connected to Snowflake: {conn}")
     cur = conn.cursor()
     cur.execute(f"""CREATE TABLE IF NOT EXISTS {TABLE_NAME} 
-                (ID INT, Full_Name STRING, Gender STRING, DATE_TIME TIMESTAMP_LTZ, 
+                (ID INT, FULL_NAME STRING, GENDER STRING, DATE_TIME TIMESTAMP_LTZ, 
                 Q01 BOOLEAN, Q02 BOOLEAN, Q03 BOOLEAN, Q04 BOOLEAN, 
                 Q05 BOOLEAN, Q06 BOOLEAN, Q07 BOOLEAN, Q08 BOOLEAN, 
                 Q09 BOOLEAN, Q10 BOOLEAN, Q11 BOOLEAN, Q12 BOOLEAN, Q13 BOOLEAN)""")
@@ -61,8 +63,8 @@ def load_api():
 
         # Convert DATE_TIME to proper format
 
-        api_df['Date_Time'] = pd.to_datetime(api_df['Date_Time'], format='%d/%m/%Y %H:%M:%S')
-        api_df['Date_Time'] = api_df['Date_Time'].dt.tz_localize('UTC')
+        api_df['DATE_TIME'] = pd.to_datetime(api_df['DATE_TIME'], format='%d/%m/%Y %H:%M:%S')
+        api_df['DATE_TIME'] = api_df['DATE_TIME'].dt.tz_localize('UTC')
         print(f"Data loaded successfully: {api_df}")
 
         return api_df
@@ -102,31 +104,69 @@ def filter_new_data(api_df, latest_date):
     return new_data if not new_data.empty else None
     
 @task()
-def load_data_to_snowflake(new_data):
+def load_data_to_snowflake(new_data, **context):
     if new_data is None or new_data.empty:
-        print("No new data to load into Snowflake.")
+        print("No new data to load into Snowflake")
         return
 
-    conn = get_snowflake_connection()
-    cur = conn.cursor()
-    new_data_columns = new_data.columns.tolist()
-    print(f"New data columns: {new_data_columns}")
-    # Insert new data into Snowflake table
-    for index, row in new_data.iterrows():
-        print(row['Date_Time'])
+    # Local file path for Parquet
+    os.makedirs(LOCAL_DIR, exist_ok=True)
+    parquet_file = f"{LOCAL_DIR}/data_{context['ds_nodash']}.parquet"
+    stage_path = f"@{STAGE_NAME}/data_{context['ds_nodash']}.parquet"
 
-        cur.execute(f"""INSERT INTO {TABLE_NAME} 
-                    (ID, FULL_NAME, GENDER, DATE_TIME, Q01, Q02, Q03, Q04, Q05, Q06, Q07, Q08, Q09, Q10, Q11, Q12, Q13)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-            (row['ID'], row['Full_Name'], row['Gender'], row['Date_Time'],
-             row['Q01'], row['Q02'], row['Q03'], row['Q04'],
-             row['Q05'], row['Q06'], row['Q07'], row['Q08'],
-             row['Q09'], row['Q10'], row['Q11'], row['Q12'], row['Q13'])) 
-                    
-    conn.commit()
-    cur.close()
-    conn.close()
-    print("Data inserted successfully.")
+    try:
+        # Validate schema
+        expected_columns = [
+            "ID", "FULL_NAME", "GENDER", "DATE_TIME",
+            "Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11", "Q12", "Q13"
+        ]
+        if list(new_data.columns) != expected_columns:
+            raise ValueError(f"DataFrame columns {list(new_data.columns)} do not match expected {expected_columns}")
+
+        # Convert boolean columns and ensure data types
+        new_data['ID'] = new_data['ID'].astype(int)
+        for col in ["Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11", "Q12", "Q13"]:
+            new_data[col] = new_data[col].astype(bool)
+        new_data['FULL_NAME'] = new_data['FULL_NAME'].astype(str)
+        new_data['GENDER'] = new_data['GENDER'].astype(str)
+
+        # Save to local storage as Parquet
+        new_data.to_parquet(parquet_file, compression="snappy", index=False)
+        print(f"Saved Parquet file to local storage: {parquet_file}")
+
+        # Upload to Snowflake internal stage
+        conn = get_snowflake_connection()
+        cur = conn.cursor()
+        try:
+            if not os.path.exists(parquet_file):
+                raise FileNotFoundError(f"Parquet file {parquet_file} not found")
+            cur.execute(f"PUT file://{parquet_file} {stage_path} AUTO_COMPRESS = FALSE")
+            print(f"Uploaded Parquet file to Snowflake stage: {stage_path}")
+
+            # Load into Snowflake table
+            cur.execute(f"""
+            COPY INTO {TABLE_NAME}
+            FROM {stage_path}
+            FILE_FORMAT = (TYPE = PARQUET)
+            MATCH_BY_COLUMN_NAME = CASE_SENSITIVE
+            """)
+            conn.commit()
+            print(f"Loaded {new_data.shape[0]} rows into {TABLE_NAME}")
+
+            # Clean up staged file
+            cur.execute(f"REMOVE {stage_path}")
+            print(f"Removed staged file: {stage_path}")
+        finally:
+            cur.close()
+            conn.close()
+    except Exception as e:
+        print(f"Error loading data to Snowflake: {str(e)}")
+        raise
+    finally:
+        # Clean up local file
+        if os.path.exists(parquet_file):
+            os.remove(parquet_file)
+            print(f"Deleted local Parquet file: {parquet_file}")
 
 
 
