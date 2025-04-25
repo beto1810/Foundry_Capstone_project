@@ -243,3 +243,17 @@
 [2025-04-25T00:44:28.253+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:44:28.252+0000] {dag.py:3239} INFO - Sync 1 DAGs
 [2025-04-25T00:44:28.261+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:44:28.261+0000] {dag.py:4180} INFO - Setting next_dagrun for airflow_lab to None, run_after=None
 [2025-04-25T00:44:28.271+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/elt.py took 0.055 seconds
+[2025-04-25T00:48:31.072+0000] {processor.py:186} INFO - Started process (PID=617) to work on /opt/airflow/dags/elt.py
+[2025-04-25T00:48:31.073+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/elt.py for tasks to queue
+[2025-04-25T00:48:31.074+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:48:31.074+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/elt.py
+[2025-04-25T00:48:31.081+0000] {processor.py:925} INFO - DAG(s) 'airflow_lab' retrieved from /opt/airflow/dags/elt.py
+[2025-04-25T00:48:31.095+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:48:31.094+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2025-04-25T00:48:31.101+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:48:31.101+0000] {dag.py:4180} INFO - Setting next_dagrun for airflow_lab to None, run_after=None
+[2025-04-25T00:48:31.109+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/elt.py took 0.040 seconds
+[2025-04-25T00:49:01.396+0000] {processor.py:186} INFO - Started process (PID=624) to work on /opt/airflow/dags/elt.py
+[2025-04-25T00:49:01.397+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/elt.py for tasks to queue
+[2025-04-25T00:49:01.401+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:49:01.400+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/elt.py
+[2025-04-25T00:49:01.417+0000] {processor.py:925} INFO - DAG(s) 'airflow_lab' retrieved from /opt/airflow/dags/elt.py
+[2025-04-25T00:49:01.441+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:49:01.440+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2025-04-25T00:49:01.448+0000] {logging_mixin.py:190} INFO - [2025-04-25T00:49:01.448+0000] {dag.py:4180} INFO - Setting next_dagrun for airflow_lab to None, run_after=None
+[2025-04-25T00:49:01.457+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/elt.py took 0.068 seconds
