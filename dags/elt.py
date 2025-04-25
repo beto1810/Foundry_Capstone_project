@@ -70,6 +70,7 @@ def load_api():
 
         api_df['DATE_TIME'] = pd.to_datetime(api_df['DATE_TIME'], format='%d/%m/%Y %H:%M:%S')
         api_df['DATE_TIME'] = api_df['DATE_TIME'].dt.tz_localize('UTC')
+        api_df['DATE_TIME'] = api_df['DATE_TIME'].dt.strftime('%Y-%m-%d %H:%M:%S')
         print(f"Data loaded successfully: {api_df}")
 
         return api_df

@@ -1,4 +1,4 @@
-ID,Full Name,Gender,Date_Time,fever for two weeks,coughing blood,sputum mixed with blood,night sweats ,chest pain,back pain in certain parts ,shortness of breath,weight loss ,body feels tired,lumps that appear around the armpits and neck,cough and phlegm continuously for two weeks to four weeks,swollen lymph nodes,loss of appetite,Prediction
+ID,Full Name,Gender,Date_Time,Q01,Q02,Q03,Q04,Q05,Q06,Q07,Q08,Q09,Q10,Q11,Q12,Q13,Prediction
 3036790382,Autumn Rollins,Female,2024-01-01 08:00:00,1,0,0,0,1,0,0,1,1,0,1,1,0,1
 9296653933,Jeremy Gould,Female,2024-01-01 09:42:43,1,1,0,1,0,1,1,0,1,0,0,0,1,1
 7049160597,Amy Stevens,Male,2024-01-01 11:03:58,1,1,0,1,0,1,0,0,0,0,0,1,0,1
